@@ -33,12 +33,25 @@ app.get("/health", (req, res) => {
 
 // make our app ready for deployment
 if (ENV.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../frontend/dist")));
+  const staticPath = path.join(__dirname, "../frontend/dist");
 
-  app.get("/*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+  // Serve static files first
+  app.use(express.static(staticPath));
+
+  // SPA fallback — using plain middleware (no path-to-regexp route)
+  app.use((req, res, next) => {
+    // only handle GET requests that accept HTML (browser navigation)
+    if (req.method !== "GET") return next();
+    const accept = req.headers.accept || "";
+    if (!accept.includes("text/html")) return next();
+
+    // send index.html for any browser navigation route
+    return res.sendFile(path.join(staticPath, "index.html"), (err) => {
+      if (err) next(err);
+    });
   });
 }
+
 
 
 const startServer = async () => {
