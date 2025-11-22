@@ -1,10 +1,9 @@
 import { Inngest } from "inngest";
-import { connectDB } from "./db.js";
+import { connectDB } from "../db.js";
 import User from "../models/User.js";
-import { serve } from "inngest/express";
 import { deleteStreamUser, upsertStreamUser } from "./stream.js";
-import { inngest, functions } from "./lib/inngest.js"; // update path as needed
 
+// Create ONE instance only
 export const inngest = new Inngest({ id: "PrepPro" });
 
 const syncUser = inngest.createFunction(
@@ -14,7 +13,6 @@ const syncUser = inngest.createFunction(
     await connectDB();
 
     const { id, email_addresses, first_name, last_name, image_url } = event.data;
-
     const newUser = {
       clerkId: id,
       email: email_addresses[0]?.email_address,
@@ -45,4 +43,5 @@ const deleteUserFromDB = inngest.createFunction(
   }
 );
 
+// Export in ONE array
 export const functions = [syncUser, deleteUserFromDB];
