@@ -1,7 +1,9 @@
 import { Inngest } from "inngest";
 import { connectDB } from "./db.js";
 import User from "../models/User.js";
+import { serve } from "inngest/express";
 import { deleteStreamUser, upsertStreamUser } from "./stream.js";
+import { inngest, functions } from "./lib/inngest.js"; // update path as needed
 
 export const inngest = new Inngest({ id: "PrepPro" });
 
