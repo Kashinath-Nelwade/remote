@@ -10,6 +10,8 @@ import { getDifficultyBadgeClass } from "../lib/utils";
 import { Loader2Icon, LogOutIcon, PhoneOffIcon } from "lucide-react";
 import CodeEditorPanel from "../components/CodeEditorPanel";
 import OutputPanel from "../components/OutputPanel";
+import SubmissionBlock from "../components/SubmissionBlock";
+import useSubmissions from "../hooks/useSubmissions";
 
 import useStreamClient from "../hooks/useStreamClient";
 import { StreamCall, StreamVideo } from "@stream-io/video-react-sdk";
@@ -21,6 +23,9 @@ function SessionPage() {
   const { user } = useUser();
   const [output, setOutput] = useState(null);
   const [isRunning, setIsRunning] = useState(false);
+  
+  // Submissions management
+  const { submissions, addSubmission } = useSubmissions(session?.problem || 'session-problem');
 
   const { data: sessionData, isLoading: loadingSession, refetch } = useSessionById(id);
 
@@ -95,6 +100,11 @@ function SessionPage() {
     }
   };
 
+  const handleSubmission = async (submission) => {
+    // Add submission to the list
+    addSubmission(submission);
+  };
+
   return (
     <div className="h-screen bg-base-100 flex flex-col">
       <Navbar />
@@ -105,7 +115,7 @@ function SessionPage() {
           <Panel defaultSize={50} minSize={30}>
             <PanelGroup direction="vertical">
               {/* PROBLEM DSC PANEL */}
-              <Panel defaultSize={50} minSize={20}>
+              <Panel defaultSize={40} minSize={20}>
                 <div className="h-full overflow-y-auto bg-base-200">
                   {/* HEADER SECTION */}
                   <div className="p-6 bg-base-100 border-b border-base-300">
@@ -229,23 +239,43 @@ function SessionPage() {
 
               <PanelResizeHandle className="h-2 bg-base-300 hover:bg-primary transition-colors cursor-row-resize" />
 
-              <Panel defaultSize={50} minSize={20}>
-                <PanelGroup direction="vertical">
-                  <Panel defaultSize={70} minSize={30}>
-                    <CodeEditorPanel
-                      selectedLanguage={selectedLanguage}
-                      code={code}
-                      isRunning={isRunning}
-                      onLanguageChange={handleLanguageChange}
-                      onCodeChange={(value) => setCode(value)}
-                      onRunCode={handleRunCode}
-                    />
+              <Panel defaultSize={60} minSize={20}>
+                <PanelGroup direction="horizontal">
+                  {/* Code Editor */}
+                  <Panel defaultSize={70} minSize={50}>
+                    <PanelGroup direction="vertical">
+                      <Panel defaultSize={70} minSize={30}>
+                        <CodeEditorPanel
+                          selectedLanguage={selectedLanguage}
+                          code={code}
+                          isRunning={isRunning}
+                          onLanguageChange={handleLanguageChange}
+                          onCodeChange={(value) => setCode(value)}
+                          onRunCode={handleRunCode}
+                        />
+                      </Panel>
+
+                      <PanelResizeHandle className="h-2 bg-base-300 hover:bg-primary transition-colors cursor-row-resize" />
+
+                      <Panel defaultSize={30} minSize={15}>
+                        <OutputPanel 
+                          output={output} 
+                          code={code}
+                          language={selectedLanguage}
+                          problemId={session?.problem || 'session-problem'}
+                          onSubmit={handleSubmission}
+                        />
+                      </Panel>
+                    </PanelGroup>
                   </Panel>
-
-                  <PanelResizeHandle className="h-2 bg-base-300 hover:bg-primary transition-colors cursor-row-resize" />
-
-                  <Panel defaultSize={30} minSize={15}>
-                    <OutputPanel output={output} />
+                  
+                  <PanelResizeHandle className="w-2 bg-base-300 hover:bg-primary transition-colors cursor-col-resize" />
+                  
+                  {/* Submissions Panel */}
+                  <Panel defaultSize={30} minSize={20}>
+                    <div className="h-full overflow-auto p-4 bg-base-50">
+                      <SubmissionBlock submissions={submissions} />
+                    </div>
                   </Panel>
                 </PanelGroup>
               </Panel>
