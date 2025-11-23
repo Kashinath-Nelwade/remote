@@ -34,9 +34,20 @@ function useStreamClient(session, loadingSession, isHost, isParticipant) {
 
         setStreamClient(client);
 
+        // videoCall = client.call("default", session.callId);
+        // await videoCall.join({ create: isHost });
+        // setCall(videoCall);
+
         videoCall = client.call("default", session.callId);
-        await videoCall.join({ create: true });
+
+        if (isHost) {
+          await videoCall.join({ create: true });
+        } else {
+          await videoCall.join();
+        }
+
         setCall(videoCall);
+
 
         const apiKey = import.meta.env.VITE_STREAM_API_KEY;
         chatClientInstance = StreamChat.getInstance(apiKey);
@@ -65,18 +76,39 @@ function useStreamClient(session, loadingSession, isHost, isParticipant) {
     if (session && !loadingSession) initCall();
 
     // cleanup - performance reasons
+    // return () => {
+    //   // iife
+    //   (async () => {
+    //     try {
+    //       if (videoCall) await videoCall.leave();
+    //       if (chatClientInstance) await chatClientInstance.disconnectUser();
+    //       await disconnectStreamClient();
+    //     } catch (error) {
+    //       console.error("Cleanup error:", error);
+    //     }
+    //   })();
+    // };
+
+
     return () => {
-      // iife
       (async () => {
         try {
-          if (videoCall) await videoCall.leave();
-          if (chatClientInstance) await chatClientInstance.disconnectUser();
+          if (videoCall) {
+            await videoCall.leave();
+            await videoCall.endCall(); // removes ghost session
+          }
+
+          if (chatClientInstance) {
+            await chatClientInstance.disconnectUser();
+          }
+
           await disconnectStreamClient();
         } catch (error) {
           console.error("Cleanup error:", error);
         }
       })();
     };
+
   }, [session, loadingSession, isHost, isParticipant]);
 
   return {
