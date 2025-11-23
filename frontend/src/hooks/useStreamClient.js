@@ -43,10 +43,20 @@ function useStreamClient(session, loadingSession, isHost, isParticipant) {
         if (isHost) {
           await videoCall.join({ create: true });
         } else {
-          await videoCall.join();
+          // ensure call is created by host
+          try {
+            await videoCall.get();
+          } catch (e) {
+            console.log("Call not ready yet, waiting...");
+            await new Promise(r => setTimeout(r, 800));
+            await videoCall.get();
+          }
+
+          await videoCall.join({ create: false });
         }
 
         setCall(videoCall);
+
 
 
         const apiKey = import.meta.env.VITE_STREAM_API_KEY;
