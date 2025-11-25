@@ -91,10 +91,10 @@ function HomePage() {
                 </button>
               </SignInButton>
 
-              <button className="btn btn-outline btn-lg">
+              {/* <button className="btn btn-outline btn-lg">
                 <VideoIcon className="size-5" />
                 Watch Demo
-              </button>
+              </button> */}
             </div>
 
             {/* STATS */}
